@@ -1,4 +1,4 @@
-main: me.ISenseToxicity.Minecraftplugin.Main
+main: me.isensetoxicity.respawnhandler.Main
 name: RespawnHandler
 version: 1.0
 author: ISenseToxicity
