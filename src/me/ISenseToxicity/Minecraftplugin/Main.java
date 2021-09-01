@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Leaves;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -38,7 +39,7 @@ public class Main extends JavaPlugin implements Listener {
 
                 int highestYSolidCoordinates = highestYSolidBlock.getY();
 
-                if(CoordinatesAboveValidation(world,highestYSolidCoordinates + 1) && CoordinatesAboveValidation(world,highestYSolidCoordinates + 2) && !(highestYSolidBlock instanceof Leaves)){
+                if(CoordinatesAboveValidation(world,highestYSolidCoordinates + 1) && CoordinatesAboveValidation(world,highestYSolidCoordinates + 2) && !(highestYSolidBlock.getBlockData() instanceof Leaves) && !highestYSolidBlock.isLiquid()){
                     event.setRespawnLocation(highestYSolidBlock.getLocation());
                     foundLocation = true;
                 }
@@ -48,7 +49,9 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private boolean CoordinatesAboveValidation(World world, int y){
+
         Block oneAbove = world.getBlockAt(randX,y,randZ);
         return oneAbove.isPassable() && !oneAbove.isLiquid();
     }
+
 }
