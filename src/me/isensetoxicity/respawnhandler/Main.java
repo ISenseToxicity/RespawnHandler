@@ -64,37 +64,41 @@ public class Main extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender instanceof Player){
-            if(label.equalsIgnoreCase("changeradius")|| label.equalsIgnoreCase("cr")){
-                if(args.length == 2){
-                    if(NumberUtils.isNumber(args[0]) && NumberUtils.isNumber(args[1])){
-                        int min =  Integer.parseInt(args[0]);
-                        int max =  Integer.parseInt(args[1]);
-                        if(min < max){
-                            if(world.getWorldBorder().getSize()/2 >= max && (world.getWorldBorder().getSize()/2)*-1 <= min){
-                                setMin(min);
-                                setMax(max);
-                                setMax(max);
-                                sender.sendMessage("The radius is now changed to: " + getMin() + " and " + getMax());
-                                return true;
+            if(sender.hasPermission("changeradius.use")){
+                if(label.equalsIgnoreCase("changeradius")|| label.equalsIgnoreCase("cr")){
+                    if(args.length == 2){
+                        if(NumberUtils.isNumber(args[0]) && NumberUtils.isNumber(args[1])){
+                            int min =  Integer.parseInt(args[0]);
+                            int max =  Integer.parseInt(args[1]);
+                            if(min < max){
+                                double worldSize = world.getWorldBorder().getSize()/2;
+                                if(worldSize >= max && worldSize *-1 <= min){
+                                    setMin(min);
+                                    setMax(max);
+                                    sender.sendMessage("The radius is now changed to: " + getMin() + " and " + getMax());
+                                    return true;
+                                }else{
+                                    sender.sendMessage("Dont go over the world border.");
+                                    return false;
+                                }
                             }else{
-                                sender.sendMessage("Dont go over the world border.");
+                                sender.sendMessage("The max needs to be higher then the min");
+                                return false;
                             }
-
                         }else{
-                            sender.sendMessage("The max needs to be higher then the min");
+                            sender.sendMessage("Please only just use numbers.");
                             return false;
                         }
-                    }else{
-                        sender.sendMessage("Please only just use numbers");
-                        return false;
+                    }else if(args.length == 0){
+                        sender.sendMessage("The range is between: " + getMin() + " and " + getMax()+".");
+                        return true;
                     }
-                }else if(args.length == 0){
-                    sender.sendMessage("The range is between: " + getMin() + " and " + getMax());
-                    return true;
                 }
-
-
+            }else{
+                sender.sendMessage("You dont have permissions to use this command.");
+                return true;
             }
+
         }
         return false;
     }
