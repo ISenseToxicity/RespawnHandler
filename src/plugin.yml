@@ -1,10 +1,15 @@
 main: me.isensetoxicity.respawnhandler.Main
 name: RespawnHandler
-version: 1.1
+version: 1.2
 author: ISenseToxicity
+api-version: 1.17
 
 commands:
   changeradius:
     description: Change the random respawn radius
-    usage: /<command> minimum maximum
-    aliases: [cr]
+    usage: /changeradius [minimum, maximum]
+    aliases: /cr
+
+  togglerespawnhandler:
+    description: toggles the plugin on or off
+    usage:  /togglerespawnhandler [on][off]
