@@ -2,3 +2,9 @@ main: me.isensetoxicity.respawnhandler.Main
 name: RespawnHandler
 version: 1.0
 author: ISenseToxicity
+
+commands:
+  changeradius:
+    description: Change the random respawn radius
+    usage: /<command> minimum maximum
+    aliases: [cr]
