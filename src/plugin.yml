@@ -2,7 +2,6 @@ main: me.isensetoxicity.respawnhandler.Main
 name: RespawnHandler
 version: 1.2
 author: ISenseToxicity
-api-version: 1.17
 
 commands:
   changeradius:

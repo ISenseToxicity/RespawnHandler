@@ -2,6 +2,7 @@ package me.isensetoxicity.respawnhandler;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Leaves;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,7 +24,6 @@ public class Main extends JavaPlugin implements Listener {
     private final FileConfiguration config = this.getConfig();
     private int max;
     private int min;
-    private String pluginstatus;
     private World world;
 
     public void onEnable(){
@@ -34,7 +35,6 @@ public class Main extends JavaPlugin implements Listener {
          this.saveConfig();
          min = config.getInt("min");
          max = config.getInt("max");
-         pluginstatus = config.getString("pluginStatus");
          world = Bukkit.getServer().getWorld("World");
     }
 
@@ -47,29 +47,27 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event){
         if(getPluginstatus().equalsIgnoreCase("on")){
             if(!event.isBedSpawn() || !event.isAnchorSpawn()){
-                boolean foundLocation = false;
-                int range = max - min + 1;
-                while (!foundLocation){
-                    randX = (int)(Math.random() * range) + min;
-                    randZ = (int)(Math.random() * range) + min;
-
-                    Block highestYSolidBlock = world.getHighestBlockAt(randX,randZ);
-
-                    int highestYSolidCoordinates = highestYSolidBlock.getY();
-
-                     if(CoordinatesAboveValidation(world,highestYSolidCoordinates + 1) && CoordinatesAboveValidation(world,highestYSolidCoordinates + 2) && !(highestYSolidBlock.getBlockData() instanceof Leaves) && !highestYSolidBlock.isLiquid()){
-                        event.setRespawnLocation(highestYSolidBlock.getLocation());
-                        foundLocation = true;
-                    }
-                }
+                Location foundLocation = calculatePosition();
+                foundLocation.getChunk().load();
+                event.setRespawnLocation(foundLocation);
             }
         }
 
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerJoinEvent(PlayerJoinEvent event){
+        Player player = event.getPlayer();
+        if(!player.hasPlayedBefore()){
+            Location foundLocation = calculatePosition();
+            foundLocation.getChunk().load();
+            player.teleport(foundLocation);
+        }
+    }
+
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(sender instanceof Player){
             if(sender.hasPermission("respawnhandler.use")){
                 if(label.equalsIgnoreCase("changeradius")|| label.equalsIgnoreCase("cr")){
                     if(args.length == 2){
@@ -85,7 +83,7 @@ public class Main extends JavaPlugin implements Listener {
                                     return true;
                                 }else{
                                     sender.sendMessage("Dont go over the world border.");
-                                    return false;
+                                    return true;
                                 }
                             }else{
                                 sender.sendMessage("The max needs to be higher then the min");
@@ -100,6 +98,7 @@ public class Main extends JavaPlugin implements Listener {
                         return true;
                     }
                 }
+
                 if(label.equalsIgnoreCase("togglerespawnhandler")){
                     if(args.length == 0){
                         sender.sendMessage("the plugin is currently "+ getPluginstatus());
@@ -117,12 +116,27 @@ public class Main extends JavaPlugin implements Listener {
                 sender.sendMessage("You dont have permissions to use this command.");
                 return true;
             }
-
-        }
-        return false;
+       return false;
     }
 
-    private boolean CoordinatesAboveValidation(World world, int y){
+    private Location calculatePosition(){
+        int range = max - min + 1;
+        while (true){
+            randX = (int)(Math.random() * range) + min;
+            randZ = (int)(Math.random() * range) + min;
+
+            Block highestYSolidBlock = world.getHighestBlockAt(randX,randZ);
+
+            int highestYSolidCoordinates = highestYSolidBlock.getY();
+
+            if(coordinatesAboveValidation(world,highestYSolidCoordinates + 1) && coordinatesAboveValidation(world,highestYSolidCoordinates + 2) && !(highestYSolidBlock.getBlockData() instanceof Leaves) && !highestYSolidBlock.isLiquid()){
+
+                return highestYSolidBlock.getLocation();
+            }
+        }
+
+    }
+    private boolean coordinatesAboveValidation(World world, int y){
         Block oneAbove = world.getBlockAt(randX,y,randZ);
         return oneAbove.isPassable() && !oneAbove.isLiquid();
     }
@@ -148,12 +162,11 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     public String getPluginstatus() {
-        return pluginstatus;
+        return config.getString("pluginStatus");
     }
 
     public void setPluginstatus(String pluginstatus) {
-        config.set("pluginstatus", pluginstatus);
-        this.pluginstatus = pluginstatus;
+        config.set("pluginStatus", pluginstatus);
         this.saveConfig();
     }
 }
