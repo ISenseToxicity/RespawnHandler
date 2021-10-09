@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -24,6 +23,8 @@ public class Main extends JavaPlugin implements Listener {
     private final FileConfiguration config = this.getConfig();
     private int max;
     private int min;
+    private boolean bedRespawn;
+    private boolean anchorRespawn;
     private World world;
 
     public void onEnable(){
@@ -31,10 +32,14 @@ public class Main extends JavaPlugin implements Listener {
          config.addDefault("min",-1000);
          config.addDefault("max",1000);
          config.addDefault("pluginStatus", "on");
+         config.addDefault("bedRespawnRandomTeleport",false);
+         config.addDefault("AnchorRespawnRandomTeleport",false);
          config.options().copyDefaults(true);
          this.saveConfig();
          min = config.getInt("min");
          max = config.getInt("max");
+         bedRespawn = config.getBoolean("bedRespawnRandomTeleport");
+         anchorRespawn = config.getBoolean("AnchorRespawnRandomTeleport");
          world = Bukkit.getServer().getWorld("World");
     }
 
@@ -42,20 +47,26 @@ public class Main extends JavaPlugin implements Listener {
     public void onDisable(){
     }
 
-
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event){
         if(getPluginstatus().equalsIgnoreCase("on")){
-            if(!event.isBedSpawn() || !event.isAnchorSpawn()){
-                Location foundLocation = calculatePosition();
-                foundLocation.getChunk().load();
-                event.setRespawnLocation(foundLocation);
+            if((respawnBedAndAnchorCheck(event.isAnchorSpawn(),anchorRespawn)) && respawnBedAndAnchorCheck(event.isBedSpawn(),bedRespawn)){
+                handlePlayerRespawnEvent(event);
             }
         }
-
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    private boolean respawnBedAndAnchorCheck(boolean respawnBoolean, boolean configBoolean){
+        return !respawnBoolean || configBoolean;
+    }
+
+    private void handlePlayerRespawnEvent(PlayerRespawnEvent event){
+        Location foundLocation = calculatePosition();
+        foundLocation.getChunk().load();
+        event.setRespawnLocation(foundLocation);
+    }
+
+    @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event){
         Player player = event.getPlayer();
         if(!player.hasPlayedBefore()){
